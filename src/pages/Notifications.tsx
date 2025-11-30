@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Plus, Send, Calendar as CalendarIcon, Users, BookOpen, AlertCircle, CheckCircle, Clock, Trash2, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
 import { format, addDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameMonth, isSameDay, addMonths, subMonths } from 'date-fns'
+import { useAuth } from '@/contexts/AuthContext'
 
 // Updated interfaces to match your backend schemas
 interface CalendarEvent {
@@ -201,8 +202,7 @@ export const Notifications: React.FC = () => {
 
   const [formErrors, setFormErrors] = useState<Partial<NewNotice>>({})
 
-  // This should come from your authentication context
-  const currentTeacherID = 'TEACHER001' // Replace with actual authenticated teacher ID
+  const { teacher } = useAuth()
 
   // Available classes - you might want to fetch this from an API
   const classes = ['Class-10-A', 'Class-10-B', 'Class-9-A', 'Class-9-B', 'Class-8-A']
@@ -211,7 +211,12 @@ export const Notifications: React.FC = () => {
   const fetchCalendarEvents = async () => {
     try {
       setLoading(true)
-      const response = await fetch('/api/calendar')
+      const token = localStorage.getItem('teacherToken')
+      const response = await fetch('/api/teachers/Calendar', {
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : ''
+        }
+      })
       if (!response.ok) throw new Error('Failed to fetch calendar events')
       const data = await response.json()
       setEvents(data)
@@ -226,9 +231,10 @@ export const Notifications: React.FC = () => {
 
   const fetchNotices = async () => {
     try {
-      const response = await fetch('/api/notices', {
+      const token = localStorage.getItem('teacherToken')
+      const response = await fetch('/api/teachers/Notice', {
         headers: {
-          'Authorization': `Bearer ${currentTeacherID}` // Adjust based on your auth setup
+          'Authorization': token ? `Bearer ${token}` : ''
         }
       })
       if (!response.ok) throw new Error('Failed to fetch notices')
@@ -242,11 +248,12 @@ export const Notifications: React.FC = () => {
 
   const fetchNoticesByDate = async (date: Date) => {
     try {
-      const response = await fetch('/api/notices/date', {
+      const token = localStorage.getItem('teacherToken')
+      const response = await fetch('/api/teachers/Notice/date', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${currentTeacherID}`
+          'Authorization': token ? `Bearer ${token}` : ''
         },
         body: JSON.stringify({
           date: format(date, 'yyyy-MM-dd')
@@ -264,11 +271,12 @@ export const Notifications: React.FC = () => {
   const createNotice = async (noticeData: NewNotice) => {
     try {
       setSaving(true)
-      const response = await fetch('/api/notices', {
+      const token = localStorage.getItem('teacherToken')
+      const response = await fetch('/api/teachers/Notice', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${currentTeacherID}`
+          'Authorization': token ? `Bearer ${token}` : ''
         },
         body: JSON.stringify(noticeData)
       })
@@ -291,10 +299,11 @@ export const Notifications: React.FC = () => {
   const deleteNotice = async (noticeId: string) => {
     try {
       setSaving(true)
-      const response = await fetch(`/api/notices/${noticeId}`, {
+      const token = localStorage.getItem('teacherToken')
+      const response = await fetch(`/api/teachers/Notice/${noticeId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${currentTeacherID}`
+          'Authorization': token ? `Bearer ${token}` : ''
         }
       })
 

@@ -74,7 +74,12 @@ export const Attendance: React.FC = () => {
   const fetchStudents = async () => {
     try {
       setLoading(true)
-      const response = await fetch('/api/students')
+      const token = localStorage.getItem('teacherToken')
+      const response = await fetch('/api/teachers/students', {
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : ''
+        }
+      })
       if (!response.ok) throw new Error('Failed to fetch students')
       const data = await response.json()
       
@@ -113,7 +118,12 @@ export const Attendance: React.FC = () => {
       // Fetch attendance records for all students for the selected date
       const promises = students.map(async (student) => {
         try {
-          const response = await fetch(`/api/attendance/${student.studentID}`)
+          const token = localStorage.getItem('teacherToken')
+          const response = await fetch(`/api/teachers/Attendance/${student.studentID}`, {
+            headers: {
+              'Authorization': token ? `Bearer ${token}` : ''
+            }
+          })
           if (response.ok) {
             const records = await response.json()
             // Find record for selected date
@@ -149,7 +159,12 @@ export const Attendance: React.FC = () => {
 
   const fetchAttendanceHistory = async () => {
     try {
-      const response = await fetch('/api/attendance')
+      const token = localStorage.getItem('teacherToken')
+      const response = await fetch('/api/teachers/Attendance', {
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : ''
+        }
+      })
       if (!response.ok) throw new Error('Failed to fetch attendance history')
       const data = await response.json()
       
@@ -190,10 +205,12 @@ export const Attendance: React.FC = () => {
 
   const markAttendance = async (studentID: string, status: 'Present' | 'Absent') => {
     try {
-      const response = await fetch('/api/attendance', {
+      const token = localStorage.getItem('teacherToken')
+      const response = await fetch('/api/teachers/Attendance', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : ''
         },
         body: JSON.stringify({
           studentID,
@@ -215,10 +232,12 @@ export const Attendance: React.FC = () => {
 
   const updateAttendance = async (studentID: string, status: 'Present' | 'Absent') => {
     try {
-      const response = await fetch(`/api/attendance/${studentID}`, {
-        method: 'PUT',
+      const token = localStorage.getItem('teacherToken')
+      const response = await fetch(`/api/teachers/Attendance/${studentID}`, {
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : ''
         },
         body: JSON.stringify({
           status

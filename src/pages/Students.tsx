@@ -85,37 +85,30 @@ export const Students: React.FC = () => {
   const sections = ['A', 'B', 'C', 'D']
 
   // API functions
-  const fetchStudentsByClass = async (grade: number, section: string) => {
-    try {
-      const response = await fetch(`/api/students/class?grade=${grade}&section=${section}`)
-      if (!response.ok) throw new Error('Failed to fetch students')
-      const data = await response.json()
-      return data
-    } catch (err) {
-      console.error('Error fetching students by class:', err)
-      throw err
-    }
-  }
-
   const fetchAllStudents = async () => {
     try {
       setLoading(true)
       setError(null)
       
-      let allStudents: Student[] = []
-      
-      // Fetch students from all grades and sections
-      for (const grade of grades) {
-        for (const section of sections) {
-          try {
-            const students = await fetchStudentsByClass(grade, section)
-            allStudents = [...allStudents, ...students]
-          } catch (err) {
-            // Continue with other classes if one fails
-            console.error(`Failed to fetch students for Grade ${grade}-${section}:`, err)
-          }
+      // Fetch all students from the backend
+      const token = localStorage.getItem('teacherToken')
+      const response = await fetch('/api/teachers/students', {
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : ''
         }
+      })
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('Response error:', errorText)
+        throw new Error('Failed to fetch students')
       }
+      const contentType = response.headers.get('content-type')
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text()
+        console.error('Non-JSON response received:', text.substring(0, 200))
+        throw new Error('Server returned non-JSON response')
+      }
+      const allStudents: Student[] = await response.json()
 
       // Enhance student data with additional information
       const studentsWithStats = await Promise.all(
@@ -152,8 +145,17 @@ export const Students: React.FC = () => {
 
   const fetchStudentMarks = async (studentID: string): Promise<Mark[]> => {
     try {
-      const response = await fetch(`/api/marks/${studentID}`)
+      const token = localStorage.getItem('teacherToken')
+      const response = await fetch(`/api/teachers/Marks/${studentID}`, {
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : ''
+        }
+      })
       if (!response.ok) return []
+      const contentType = response.headers.get('content-type')
+      if (!contentType || !contentType.includes('application/json')) {
+        return []
+      }
       const data = await response.json()
       
       // Flatten categorized marks
@@ -173,8 +175,17 @@ export const Students: React.FC = () => {
 
   const fetchStudentAttendance = async (studentID: string): Promise<AttendanceRecord[]> => {
     try {
-      const response = await fetch(`/api/attendance/${studentID}`)
+      const token = localStorage.getItem('teacherToken')
+      const response = await fetch(`/api/teachers/Attendance/${studentID}`, {
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : ''
+        }
+      })
       if (!response.ok) return []
+      const contentType = response.headers.get('content-type')
+      if (!contentType || !contentType.includes('application/json')) {
+        return []
+      }
       const data = await response.json()
       return data
     } catch (err) {
@@ -186,32 +197,13 @@ export const Students: React.FC = () => {
   const searchStudentsByName = async (name: string) => {
     try {
       setLoading(true)
-      const response = await fetch(`/api/students/search?name=${encodeURIComponent(name)}`)
-      if (!response.ok) throw new Error('Failed to search students')
-      const data = await response.json()
-      
-      // Enhance with additional data
-      const studentsWithStats = await Promise.all(
-        data.map(async (student: Student) => {
-          try {
-            const [marks, attendance] = await Promise.all([
-              fetchStudentMarks(student.studentID),
-              fetchStudentAttendance(student.studentID)
-            ])
-            
-            return {
-              ...student,
-              marks,
-              attendance: calculateAttendanceStats(attendance),
-              recentAttendance: getRecentAttendance(attendance)
-            }
-          } catch (err) {
-            return student
-          }
-        })
-      )
-
-      setFilteredStudents(studentsWithStats)
+      // Search is handled client-side - filter from already loaded students
+      const searchTerm = name.toLowerCase()
+      const filtered = students.filter(student => {
+        const fullName = `${student.firstName} ${student.lastName || ''}`.toLowerCase()
+        return fullName.includes(searchTerm) || student.studentID.toLowerCase().includes(searchTerm)
+      })
+      setFilteredStudents(filtered)
     } catch (err) {
       console.error('Error searching students:', err)
       setError('Failed to search students')

@@ -1,9 +1,32 @@
+// 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Users, BookOpen, BarChart3, Bell, UserCheck, Calendar, TrendingUp, AlertCircle, Clock, Plus, Loader2 } from 'lucide-react'
-import { format, isToday, isTomorrow, isYesterday } from 'date-fns'
+import { Users, BookOpen, BarChart3, Bell, UserCheck, Calendar, TrendingUp, AlertCircle, Clock, Loader2 } from 'lucide-react'
+import { format } from 'date-fns'
+import { api } from '@/serivce/api'
+import { useAuth } from '@/contexts/AuthContext'
 
 // Updated interfaces to match your backend schemas
 interface Teacher {
@@ -134,16 +157,13 @@ export const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // This should come from your authentication context
-  const currentTeacherID = 'TEACHER001' // Replace with actual authenticated teacher ID
+  const { teacher: authTeacher } = useAuth()
 
-  // API functions
+  // API functions using the api service
   const fetchTeacherProfile = async () => {
     try {
-      const response = await fetch(`/api/teachers/${currentTeacherID}`)
-      if (!response.ok) throw new Error('Failed to fetch teacher profile')
-      const data = await response.json()
-      setTeacher(data)
+      const data = await api.getTeacherProfile()
+      setTeacher(data.teacher as Teacher)
     } catch (err) {
       console.error('Error fetching teacher profile:', err)
       setError('Failed to load teacher profile')
@@ -152,9 +172,7 @@ export const Dashboard: React.FC = () => {
 
   const fetchAllStudents = async () => {
     try {
-      const response = await fetch('/api/students')
-      if (!response.ok) throw new Error('Failed to fetch students')
-      const data = await response.json()
+      const data = await api.getStudents()
       return data
     } catch (err) {
       console.error('Error fetching students:', err)
@@ -164,9 +182,7 @@ export const Dashboard: React.FC = () => {
 
   const fetchAllHomework = async () => {
     try {
-      const response = await fetch('/api/homework')
-      if (!response.ok) throw new Error('Failed to fetch homework')
-      const data = await response.json()
+      const data = await api.getHomework()
       return data
     } catch (err) {
       console.error('Error fetching homework:', err)
@@ -176,10 +192,7 @@ export const Dashboard: React.FC = () => {
 
   const fetchAllMarks = async () => {
     try {
-      // This would need to be implemented in your backend
-      const response = await fetch('/api/marks/all')
-      if (!response.ok) return []
-      const data = await response.json()
+      const data = await api.getAllMarks()
       return data
     } catch (err) {
       console.error('Error fetching marks:', err)
@@ -189,9 +202,7 @@ export const Dashboard: React.FC = () => {
 
   const fetchAllAttendance = async () => {
     try {
-      const response = await fetch('/api/attendance')
-      if (!response.ok) throw new Error('Failed to fetch attendance')
-      const data = await response.json()
+      const data = await api.getAttendance()
       return data
     } catch (err) {
       console.error('Error fetching attendance:', err)
@@ -201,13 +212,7 @@ export const Dashboard: React.FC = () => {
 
   const fetchTeacherNotices = async () => {
     try {
-      const response = await fetch('/api/notices', {
-        headers: {
-          'Authorization': `Bearer ${currentTeacherID}`
-        }
-      })
-      if (!response.ok) throw new Error('Failed to fetch notices')
-      const data = await response.json()
+      const data = await api.getNotices()
       return data
     } catch (err) {
       console.error('Error fetching notices:', err)
@@ -217,9 +222,7 @@ export const Dashboard: React.FC = () => {
 
   const fetchCalendarEvents = async () => {
     try {
-      const response = await fetch('/api/calendar')
-      if (!response.ok) throw new Error('Failed to fetch calendar events')
-      const data = await response.json()
+      const data = await api.getCalendarEvents()
       return data
     } catch (err) {
       console.error('Error fetching calendar events:', err)

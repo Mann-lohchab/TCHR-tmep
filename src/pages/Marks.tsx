@@ -94,7 +94,12 @@ export const Marks: React.FC = () => {
   const fetchStudents = async () => {
     try {
       setLoading(true)
-      const response = await fetch('/api/students')
+      const token = localStorage.getItem('teacherToken')
+      const response = await fetch('/api/teachers/students', {
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : ''
+        }
+      })
       if (!response.ok) throw new Error('Failed to fetch students')
       const data = await response.json()
       
@@ -125,7 +130,12 @@ export const Marks: React.FC = () => {
       // Fetch marks for all students in the selected criteria
       const marksPromises = students.map(async (student) => {
         try {
-          const response = await fetch(`/api/marks/${student.studentID}`)
+          const token = localStorage.getItem('teacherToken')
+          const response = await fetch(`/api/teachers/Marks/${student.studentID}`, {
+            headers: {
+              'Authorization': token ? `Bearer ${token}` : ''
+            }
+          })
           if (response.ok) {
             const data = await response.json()
             // Filter marks by subject, examType, and semester
@@ -167,10 +177,12 @@ export const Marks: React.FC = () => {
   const createMark = async (markData: NewMark) => {
     try {
       setSaving(true)
-      const response = await fetch('/api/marks', {
+      const token = localStorage.getItem('teacherToken')
+      const response = await fetch('/api/teachers/Marks', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : ''
         },
         body: JSON.stringify(markData)
       })
@@ -193,10 +205,12 @@ export const Marks: React.FC = () => {
   const updateMark = async (markId: string, markData: Partial<NewMark>) => {
     try {
       setSaving(true)
-      const response = await fetch(`/api/marks/${markId}`, {
-        method: 'PUT',
+      const token = localStorage.getItem('teacherToken')
+      const response = await fetch(`/api/teachers/Marks/${markId}`, {
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : ''
         },
         body: JSON.stringify(markData)
       })
@@ -219,8 +233,12 @@ export const Marks: React.FC = () => {
   const deleteMark = async (markId: string) => {
     try {
       setSaving(true)
-      const response = await fetch(`/api/marks/${markId}`, {
-        method: 'DELETE'
+      const token = localStorage.getItem('teacherToken')
+      const response = await fetch(`/api/teachers/Marks/${markId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : ''
+        }
       })
 
       if (!response.ok) {

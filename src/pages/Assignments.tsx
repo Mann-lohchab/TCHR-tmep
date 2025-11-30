@@ -85,7 +85,12 @@ export const Assignments: React.FC = () => {
   const fetchAllHomework = async () => {
     try {
       setLoading(true)
-      const response = await fetch('/api/homework')
+      const token = localStorage.getItem('teacherToken')
+      const response = await fetch('/api/teachers/Homework', {
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : ''
+        }
+      })
       if (!response.ok) throw new Error('Failed to fetch homework')
       const data = await response.json()
       setAssignments(data)
@@ -104,10 +109,12 @@ export const Assignments: React.FC = () => {
 
     try {
       setLoading(true)
-      const response = await fetch('/api/homework/range', {
+      const token = localStorage.getItem('teacherToken')
+      const response = await fetch('/api/teachers/Homework/range', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : ''
         },
         body: JSON.stringify({
           fromDate: format(fromDate, 'yyyy-MM-dd'),
@@ -129,7 +136,12 @@ export const Assignments: React.FC = () => {
 
   const fetchStudents = async () => {
     try {
-      const response = await fetch('/api/students')
+      const token = localStorage.getItem('teacherToken')
+      const response = await fetch('/api/teachers/students', {
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : ''
+        }
+      })
       if (!response.ok) throw new Error('Failed to fetch students')
       const data = await response.json()
       setStudents(data)
@@ -142,10 +154,12 @@ export const Assignments: React.FC = () => {
   const createHomework = async (homeworkData: NewHomework) => {
     try {
       setSaving(true)
-      const response = await fetch('/api/homework', {
+      const token = localStorage.getItem('teacherToken')
+      const response = await fetch('/api/teachers/Homework', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : ''
         },
         body: JSON.stringify(homeworkData)
       })
@@ -168,10 +182,12 @@ export const Assignments: React.FC = () => {
   const updateHomework = async (homeworkID: string, homeworkData: Partial<NewHomework>) => {
     try {
       setSaving(true)
-      const response = await fetch('/api/homework', {
-        method: 'PUT',
+      const token = localStorage.getItem('teacherToken')
+      const response = await fetch('/api/teachers/Homework', {
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : ''
         },
         body: JSON.stringify({ homeworkID, ...homeworkData })
       })
@@ -194,10 +210,12 @@ export const Assignments: React.FC = () => {
   const deleteHomework = async (homeworkID: string) => {
     try {
       setSaving(true)
-      const response = await fetch('/api/homework', {
+      const token = localStorage.getItem('teacherToken')
+      const response = await fetch('/api/teachers/Homework', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : ''
         },
         body: JSON.stringify({ homeworkID })
       })
