@@ -23,6 +23,8 @@ export const Login: React.FC = () => {
 
     try {
       await login(teacherID, password)
+      // Small delay to ensure auth state propagates through context
+      await new Promise(resolve => setTimeout(resolve, 50))
       navigate('/')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed. Please check your credentials.')

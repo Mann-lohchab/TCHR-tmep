@@ -107,6 +107,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           lastName: data.user.lastName,
           email: data.user.email
         })
+        // Force immediate state update to ensure auth state propagates
+        await new Promise(resolve => setTimeout(resolve, 0))
       }
     } catch (error) {
       console.error('Login error:', error)

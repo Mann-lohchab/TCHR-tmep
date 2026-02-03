@@ -1,5 +1,17 @@
 // API base URL - reads from .env file, defaults to port 3001
-const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3001'
+const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3000'
+
+// Import Teacher type for type safety
+interface Teacher {
+  _id: string
+  teacherID: string
+  firstName: string
+  lastName?: string
+  Address: string
+  email: string
+  sessionExpiry?: Date | null
+  lastLoginAt?: Date
+}
 
 // Helper function to handle API responses
 async function handleResponse<T>(response: Response): Promise<T> {
@@ -93,8 +105,8 @@ export const api = {
     }),
   
   // Teacher endpoints
-  getTeacherProfile: () => 
-    apiRequest('/api/teachers/profile'),
+  getTeacherProfile: () =>
+    apiRequest<{ teacher: Teacher }>('/api/teachers/profile'),
   
   // Student endpoints
   getStudents: () => 
@@ -122,6 +134,13 @@ export const api = {
   // Calendar endpoints
   getCalendarEvents: () => 
     apiRequest('/api/teachers/Calendar'),
+
+  // AI agent endpoints
+  AIAgent: (message: string) =>
+    apiRequest('/api/teachers/ai/chat', {
+      method: 'POST',
+      body: JSON.stringify({ message }),
+    }),
 }
 
 // Export default for easy import

@@ -162,8 +162,8 @@ export const Dashboard: React.FC = () => {
   // API functions using the api service
   const fetchTeacherProfile = async () => {
     try {
-      const data = await api.getTeacherProfile()
-      setTeacher(data.teacher as Teacher)
+      const response = await api.getTeacherProfile()
+      setTeacher(response.teacher)
     } catch (err) {
       console.error('Error fetching teacher profile:', err)
       setError('Failed to load teacher profile')
@@ -244,32 +244,40 @@ export const Dashboard: React.FC = () => {
         fetchCalendarEvents()
       ])
 
+      // Type assertions for API responses
+      const typedStudents = students as Student[]
+      const typedHomework = homework as Homework[]
+      const typedMarks = marks as Mark[]
+      const typedAttendance = attendance as AttendanceRecord[]
+      const typedNotices = notices as Notice[]
+      const typedEvents = events as CalendarEvent[]
+
       // Calculate total students
-      const totalStudents = students.length
+      const totalStudents = typedStudents.length
       
       // Calculate total classes (unique grade-section combinations)
-      const uniqueClasses = new Set(students.map((s: Student) => `${s.grade}-${s.section}`))
+      const uniqueClasses = new Set(typedStudents.map((s: Student) => `${s.grade}-${s.section}`))
       const totalClasses = uniqueClasses.size
 
       // Calculate pending assignments (homework created today)
       const today = new Date().toISOString().split('T')[0]
-      const pendingAssignments = homework.filter((h: Homework) => 
+      const pendingAssignments = typedHomework.filter((h: Homework) =>
         h.date.split('T')[0] === today
       ).length
 
       // Calculate today's attendance
-      const todayAttendance = calculateTodayAttendance(attendance)
+      const todayAttendance = calculateTodayAttendance(typedAttendance)
 
       // Calculate average marks
-      const averageMarks = calculateAverageMarks(marks)
+      const averageMarks = calculateAverageMarks(typedMarks)
 
       // Calculate active students (with recent login)
-      const activeStudents = students.filter((s: Student) => 
+      const activeStudents = typedStudents.filter((s: Student) =>
         s.sessionExpiry && new Date(s.sessionExpiry) > new Date()
       ).length
 
       // Calculate recent notices
-      const recentNotices = notices.filter((n: Notice) => {
+      const recentNotices = typedNotices.filter((n: Notice) => {
         const noticeDate = new Date(n.date)
         const daysDiff = (new Date().getTime() - noticeDate.getTime()) / (1000 * 3600 * 24)
         return daysDiff <= 7
@@ -287,10 +295,10 @@ export const Dashboard: React.FC = () => {
       })
 
       // Generate recent activities
-      generateRecentActivities(homework, attendance, marks, notices)
+      generateRecentActivities(typedHomework, typedAttendance, typedMarks, typedNotices)
 
       // Generate upcoming events
-      generateUpcomingEvents(homework, events)
+      generateUpcomingEvents(typedHomework, typedEvents)
 
     } catch (err) {
       console.error('Error calculating stats:', err)
